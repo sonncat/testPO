@@ -1,7 +1,7 @@
 from locust import HttpUser, task, between
 import urllib3
 
-# сертификат
+# сертификат commit
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 class OpenBMCUser(HttpUser):
