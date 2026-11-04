@@ -13,6 +13,8 @@ RUN apt-get update && apt-get install -y \
     ipmitool \
     jq \
     netcat-openbsd \
+    chromium \
+    chromium-driver \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt /tmp/requirements.txt
