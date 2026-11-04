@@ -6,7 +6,6 @@ pipeline {
             steps {
                 echo 'Запускаем QEMU с образом OpenBMC в фоне...'
                 sh '''
-                    # Убиваем старые процессы на всякий случай
                     pkill -f qemu-system-arm || true
                     
                     nohup qemu-system-arm -m 256 -M romulus-bmc -nographic \
@@ -18,9 +17,8 @@ pipeline {
 
         stage('Wait for OpenBMC to boot') {
             steps {
-                echo 'Ожидаем загрузку OpenBMC...'
+                echo 'Ожидаем загрузку OpenBMC (проверяем доступность Redfish API)...'
                 sh '''
-                    # Ждем до 5 минут (60 попыток по 5 секунд)
                     for i in $(seq 1 60); do
                         if curl -k -s -u root:0penBmc https://localhost:2443/redfish/v1/ | grep -q "RedfishVersion"; then
                             echo "OpenBMC готов к работе!"
@@ -36,13 +34,24 @@ pipeline {
             }
         }
 
+        stage('Run API Tests (Redfish)') {
+            steps {
+                echo 'Запускаем API-тесты (PyTest + Requests)...'
+                sh '''
+                    cd /workspace/ci-cd-lab/api_tests
+                    mkdir -p reports
+                    pytest test_redfish.py --html=reports/api_report.html --self-contained-html || true
+                '''
+            }
+        }
+
         stage('Run Selenium Tests') {
             steps {
                 echo 'Запускаем UI-тесты (Selenium)...'
                 sh '''
                     cd /workspace/ci-cd-lab/selenium_tests
                     mkdir -p reports
-                    # || true чтобы пайплайн не упал, если тесты не прошли
+                    export CHROME_BIN=/usr/bin/chromium
                     pytest --html=reports/selenium_report.html --self-contained-html || true
                 '''
             }
@@ -63,14 +72,13 @@ pipeline {
 
     post {
         always {
-            echo 'Сохраняем артефакты (отчеты тестов)...'
-            // Собираем ВСЕ html-файлы из папки reports
+            echo 'Сохраняем артефакты (HTML-отчеты)...'
             archiveArtifacts artifacts: '**/reports/*.html', allowEmptyArchive: true
             
             echo 'Останавливаем QEMU...'
             sh 'pkill -f qemu-system-arm || true'
             
-            echo 'Выводим лог QEMU для диагностики...'
+            echo 'Выводим лог QEMU (для диагностики, если что-то упало)...'
             sh 'cat /tmp/qemu.log || true'
         }
     }
