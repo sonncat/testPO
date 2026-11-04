@@ -52,6 +52,7 @@ pipeline {
                     cd /workspace/ci-cd-lab/selenium_tests
                     mkdir -p reports
                     export CHROME_BIN=/usr/bin/chromium
+                    export PYTHONPATH=/workspace/ci-cd-lab/selenium_tests:$PYTHONPATH
                     pytest --html=reports/selenium_report.html --self-contained-html || true
                 '''
             }

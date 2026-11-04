@@ -1,0 +1,22 @@
+# HTML-отчеты тестов
+**/reports/
+reports/
+*.html
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# Locust
+*.csv
+
+# QEMU логи
+qemu.log
+/tmp/qemu.log
+
+# OS
+.DS_Store
+Thumbs.db
