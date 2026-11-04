@@ -1,7 +1,6 @@
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
-
 from selenium.webdriver.common.by import By
 
 
@@ -24,12 +23,11 @@ class BasePage:
             EC.visibility_of_element_located(locator)
         )
 
-    # Метод для проверки кликабелности элемента на странице
+    # Метод для проверки кликабельности элемента на странице
     def element_be_clickable(self, locator):
         return self.wait.until(
             EC.element_to_be_clickable(locator)
         )
-    
 
     # Метод для ввода текста в элемент
     def type(self, locator, text):
@@ -42,8 +40,13 @@ class BasePage:
         return element.text
 
     def click_element(self, locator):
-        element = WebDriverWait(self.driver, 10).until(
-            EC.presence_of_element_located((By.XPATH, locator))
+        if isinstance(locator, tuple):
+            by, value = locator
+        else:
+            by, value = By.XPATH, locator
+
+        element = self.wait.until(
+            EC.presence_of_element_located((by, value))
         )
         self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", element)
         self.driver.execute_script("arguments[0].click();", element)
